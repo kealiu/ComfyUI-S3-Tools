@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-s3-tools"
+description = "Nodes:Load From S3, Save To S3."
+version = "1.0.0"
+license = "LICENSE"
+dependencies = ["boto3", "numpy", "torch", "PIL"]
+
+[project.urls]
+Repository = "https://github.com/kealiu/ComfyUI-S3-Tools"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-S3-Tools"
+Icon = ""
