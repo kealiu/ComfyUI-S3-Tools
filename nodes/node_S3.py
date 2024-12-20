@@ -5,10 +5,10 @@ import boto3
 from PIL import Image, ImageSequence, ImageOps
 
 def awss3_save_file(client, bucket, key, buff):
-    client.put_object(
-            Body = buff,
-            Key = key, 
-            Bucket = bucket)
+    client.upload_fileobj(
+            buff,
+            bucket,
+            key)
 
 def awss3_load_file(client, bucket, key):
     outfile = io.BytesIO()
@@ -39,7 +39,8 @@ class SaveImageToS3:
                              "aws_sk": ("STRING", {"multiline": False, "default": ""}),
                              "session_token": ("STRING", {"multiline": False, "default": ""}),
                              "s3_bucket": ("STRING", {"multiline": False, "default": "s3_bucket"}),
-                             "pathname": ("STRING", {"multiline": False, "default": "pathname for file"})
+                             "pathname": ("STRING", {"multiline": False, "default": "pathname for file"}),
+                             "quality": ("INT", {"default": 95, "min": 1, "max": 100, "step": 1})
                              },
                 "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
                 }
@@ -48,19 +49,19 @@ class SaveImageToS3:
     CATEGORY = "image"
     OUTPUT_NODE = True
 
-    def save_image_to_s3(self, images, region, aws_ak, aws_sk, session_token, s3_bucket, pathname, prompt=None, extra_pnginfo=None):
+    def save_image_to_s3(self, images, region, aws_ak, aws_sk, session_token, s3_bucket, pathname, quality, prompt=None, extra_pnginfo=None):
         client = awss3_init_client(region, aws_ak, aws_sk, session_token)
         results = list()
         for (batch_number, image) in enumerate(images):
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
             img_byte_arr = io.BytesIO()
-            img.save(img_byte_arr, format='JPEG')
+            img.save(img_byte_arr, format='WebP', quality=quality, lossless=True)
             img_byte_arr.seek(0)  # Reset buffer position
 
-            awss3_save_file(client, s3_bucket, "%s_%i.jpeg"%(pathname, batch_number), img_byte_arr)
+            awss3_save_file(client, s3_bucket, "%s_%i"%(pathname, batch_number), img_byte_arr)
             results.append({
-                "filename": "%s_%i.jpeg"%(pathname, batch_number),
+                "filename": "%s_%i"%(pathname, batch_number),
                 "subfolder": "",
                 "type": "output"
             })
