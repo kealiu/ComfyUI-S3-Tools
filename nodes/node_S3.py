@@ -55,10 +55,12 @@ class SaveImageToS3:
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
             img_byte_arr = io.BytesIO()
-            img.save(img_byte_arr, format='PNG')
-            awss3_save_file(client, s3_bucket, "%s_%i.png"%(pathname, batch_number), img_byte_arr)
+            img.save(img_byte_arr, format='JPEG')
+            img_byte_arr.seek(0)  # Reset buffer position
+
+            awss3_save_file(client, s3_bucket, "%s_%i.jpeg"%(pathname, batch_number), img_byte_arr)
             results.append({
-                "filename": "%s_%i.png"%(pathname, batch_number),
+                "filename": "%s_%i.jpeg"%(pathname, batch_number),
                 "subfolder": "",
                 "type": "output"
             })
